@@ -1,6 +1,6 @@
 #define ReflectionAPin A6
 #define ReflectionBPin A7
-#define TrapLimit 800
+#define TrapLimit 600
 bool OnCheckpoint=true;
 float WhiteAvg=0;
 int WhiteAvgDenominator=0;

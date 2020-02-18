@@ -32,7 +32,7 @@ void setup() {
 void loop() {
   ResetEncoders();
   ResetPID();
-  while(EncPulseEB<TileDist || EncPulseDB<TileDist || EncPulseEA<TileDist || EncPulseDA<TileDist){
+  while(EncPulseEB<TileDistLocal || EncPulseDB<TileDistLocal || EncPulseEA<TileDistLocal || EncPulseDA<TileDistLocal){
     UpdateEncoders();
     ReadIMU();
   	CheckBackup();
@@ -40,19 +40,19 @@ void loop() {
     if(ToFFrontCT<150 || (ToFFrontA<=150 && ToFFrontB<=150)){
       break;
     }
-    while(ToFLeftA<120 && ToFFrontB>150){
+    while(ToFLeftA<120 && ToFFrontB>150 && ToFRightA>120){
     	WobbleLeft();
     	ReadToF();
     }
-    while(ToFRightA<120 && ToFFrontA>150){
+    while(ToFRightA<120 && ToFFrontA>150 && ToFLeftA>120){
     	WobbleRight();
     	ReadToF();
     }
-    while(ToFFrontA<200&&ToFFrontCT>300&&ToFFrontB>300){
+    while(ToFFrontA<200 && ToFFrontCT>300 && ToFFrontB>300 && ToFRightA>120){
       WobbleLeft();
       ReadToF();
     }
-    while(ToFFrontB<200&&ToFFrontCT>300&&ToFFrontA>300){
+    while(ToFFrontB<200 && ToFFrontCT>300 && ToFFrontA>300 && ToFLeftA>120){
       WobbleRight();
       ReadToF();
     }
@@ -273,15 +273,7 @@ void TurnLeft(){
     CheckVictim();
     CheckBackup();
   }
-  if(Quadrant==1){
-    Quadrant=4;
-  } else if(Quadrant==2){
-    Quadrant=3;
-  } else if(Quadrant==3){
-    Quadrant=1;
-  } else if(Quadrant==4){
-    Quadrant=2;
-  }
+  ReadIMU();
   RelativeXY();
   Align();
   Rotating=false;
@@ -299,15 +291,7 @@ void TurnRight(){
     CheckVictim();
     CheckBackup();
   }
-  if(Quadrant==1){
-    Quadrant=3;
-  } else if(Quadrant==2){
-    Quadrant=4;
-  } else if(Quadrant==3){
-    Quadrant=2;
-  } else if(Quadrant==4){
-    Quadrant=1;
-  }
+  ReadIMU();
   RelativeXY();
   Align();
   Rotating=false;
@@ -423,6 +407,7 @@ void NextMove(){
   	BlackZone();
   }
   ReadIMU();
+  TileDistLocal = TileDist/cos(abs(90-Inclination)*0.0174);
   if(EncPulseAvg>=(TileDist/2)){
     MapDisplacement();
   }

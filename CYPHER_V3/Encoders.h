@@ -7,6 +7,7 @@ Encoder EA(32, 30);
 Encoder DA(42, 44);
 //E=left , D=right
 //A=front , B=back
+int TileDistLocal=5100;
 int EncPulseEB=0;
 int EncPulseDB=0;
 int EncPulseEA=0;
