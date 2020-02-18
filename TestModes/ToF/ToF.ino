@@ -194,9 +194,5 @@ void loop() {
   Serial.print("    ");
   Serial.print(ToFBackCT);
   Serial.print("    ");
-  Serial.print(ToFBackB);
-  CalculatePID();
-  Serial.print("    ");
-  Serial.println(PID_value);
-  n0.setValue(ToFFrontCT);
+  Serial.println(ToFBackB);
 }

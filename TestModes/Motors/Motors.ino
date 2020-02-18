@@ -11,8 +11,6 @@
 #define motorLL 3
 #define motorLLdirA 2
 #define motorLLdirB 28
-#define stdbyL 25
-#define stdbyR 53
 
 void MotorsRelease(){
   digitalWrite(motorULdirA, LOW);
@@ -50,10 +48,6 @@ void MotorsInitialize(){
   pinMode(motorLR, OUTPUT);
   pinMode(motorLRdirA, OUTPUT);
   pinMode(motorLRdirB, OUTPUT);
-  pinMode(stdbyR, OUTPUT);
-  digitalWrite(stdbyR, HIGH);
-  pinMode(stdbyL, OUTPUT);
-  digitalWrite(stdbyL, HIGH);
   MotorsRelease();
 }
 
@@ -164,8 +158,8 @@ void IntroduceLeft(int speed){
 void setup() {
   Serial.begin(9600);
   MotorsInitialize();
-  while(EncPulseEB<TileDist || EncPulseDB<TileDist || EncPulseEA<TileDist || EncPulseDA<TileDist){
-    MoveForward(250);
+  while(EncPulseEB<TurnDist || EncPulseDB<TurnDist || EncPulseEA<TurnDist || EncPulseDA<TurnDist){
+    RotateRight(200);
     UpdateEncoders();
     delay(100);
   }
