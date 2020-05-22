@@ -3,17 +3,13 @@
 #define ImpactSensorRight 24
 byte heatmap[2][30][30] = {0};
 byte floodfill[2][30][30] = {0};
-byte floodfillbackup[2][30][30] = {0};
 bool IsForwardAvailable=true;
 bool IsRightAvailable=true;
 bool IsLeftAvailable=true;
 bool IsBackwardsAvailable=true;
 int currentfloor=1;
-int currentfloorBackup=1;
 int PositionX = 15;
 int PositionY = 15;
-int PositionXBackup = 15;
-int PositionYBackup = 15;
 int ForwardX=15;
 int ForwardY=16;
 int LeftX=14;
@@ -33,15 +29,11 @@ void PressToStart(){
   pinMode(ImpactSensorRight, INPUT_PULLUP);
 	while(digitalRead(SwitchPin) == HIGH){
 		ReadIMU();
-    ReadReflectionPure();
     n0.setValue(Inclination);
-    n1.setValue((ReflectLeft+ReflectRight)/2);
 	}
   while(digitalRead(SwitchPin) == LOW){
     ReadIMU();
-    ReadReflectionPure();
     n0.setValue(Inclination);
-    n1.setValue((ReflectLeft+ReflectRight)/2);
   }
   OnCheckpoint=true;
   EraseForegroundPic();

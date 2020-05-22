@@ -1,6 +1,6 @@
 #include <Encoder.h>
-#define TileDist 5100
-#define TurnDist 2850
+#define TileDist 4500
+#define TurnDist 2400
 Encoder EB(29, 27);
 Encoder DB(31, 33);
 Encoder EA(32, 30);
@@ -8,6 +8,7 @@ Encoder DA(42, 44);
 //E=left , D=right
 //A=front , B=back
 int TileDistLocal=5100;
+int TargetEncAvg = 0;
 int EncPulseEB=0;
 int EncPulseDB=0;
 int EncPulseEA=0;

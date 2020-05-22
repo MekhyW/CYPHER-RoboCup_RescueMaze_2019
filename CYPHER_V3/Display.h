@@ -9,6 +9,10 @@ NexPage ramp_down = NexPage(6, 0, "ramp_down");
 NexPage Exit = NexPage(7, 0, "Exit");
 NexPage checkpoint = NexPage(8, 0, "checkpoint");
 NexPage standby = NexPage(9, 0, "standby");
+NexPage dropping_left = NexPage(10, 0, "dropping_left");
+NexPage dropped_left = NexPage(11, 0, "dropped_left");
+NexPage dropping_right = NexPage(12, 0, "dropping_right");
+NexPage dropped_right = NexPage(13, 0, "dropped_right");
 NexPicture arrow = NexPicture(9, 2, "arrow");
 NexNumber n0 = NexNumber(9, 3, "n0");
 NexNumber n1 = NexNumber(9, 4, "n1");
@@ -33,6 +37,14 @@ void DrawForegroundPic(int id){
       checkpoint.show();
     } else if(id==9){
       standby.show();
+    } else if(id==10){
+      dropping_left.show();
+    } else if(id==11){
+      dropped_left.show();
+    } else if(id==12){
+      dropping_right.show();
+    } else if(id==13){
+      dropped_right.show();
     }
 }
 

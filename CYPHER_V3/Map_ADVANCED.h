@@ -1,7 +1,8 @@
+#include <DueFlashStorage.h>
+DueFlashStorage dueFlashStorage;
 #include "Map.h"
 byte accessmap[2][30][30] = {0};
 byte wallmap[2][30][30] = {0};
-byte wallmapbackup[2][30][30] = {0};
 int AccessKey=0;
 
 void EraseAccessMap(){
@@ -13,26 +14,22 @@ void EraseAccessMap(){
 }
 
 void UpdateBackup(){
-  memcpy(floodfillbackup, floodfill, sizeof(floodfillbackup));
-  memcpy(wallmapbackup, wallmap, sizeof(wallmap));
-  PositionXBackup=PositionX;
-  PositionYBackup=PositionY;
-  currentfloorBackup=currentfloor;
+  dueFlashStorage.write(0, PositionX);
+  dueFlashStorage.write(1, PositionY);
+  dueFlashStorage.write(2, currentfloor);
 }
 
 void CheckBackup(){
   if(digitalRead(SwitchPin) == LOW){
-    memcpy(floodfill, floodfillbackup, sizeof(floodfill));
-    memcpy(wallmap, wallmapbackup, sizeof(wallmap));
+    PositionX = (int)dueFlashStorage.read(0);
+    PositionY = (int)dueFlashStorage.read(1);
+    currentfloor = (int)dueFlashStorage.read(2);
     EraseAccessMap();
-    PositionX=PositionXBackup;
-    PositionY=PositionYBackup;
-    currentfloor=currentfloorBackup;
     MotorsStop();
     MotorsRelease();
     ResetEncoders();
     PressToStart();
-    BackForth();
+    //BackForth();
   }
 }
 
@@ -95,6 +92,38 @@ void MarkAccess(){
   	wallmap[currentfloor][PositionX][PositionY] = wallmapTemp;
   } else if(wallmap[currentfloor][PositionX][PositionY]!=wallmapTemp){
   	EraseAccessMap();
+  }
+  int addressTemp = 3;
+  addressTemp = 3+(900*currentfloor)+(30*PositionX)+(PositionY);
+  dueFlashStorage.write(addressTemp, floodfill[currentfloor][PositionX][PositionY]);
+  dueFlashStorage.write(addressTemp+2000, heatmap[currentfloor][PositionX][PositionY]);
+  addressTemp = 3+(900*currentfloor)+(30*ForwardX)+(ForwardY);
+  if(dueFlashStorage.read(addressTemp) != 255){
+    floodfill[currentfloor][ForwardX][ForwardY] = dueFlashStorage.read(addressTemp);
+  }
+  if(dueFlashStorage.read(addressTemp+2000) != 255){
+    heatmap[currentfloor][ForwardX][ForwardY] = dueFlashStorage.read(addressTemp+2000);
+  }
+  addressTemp = 3+(900*currentfloor)+(30*RightX)+(RightY);
+  if(dueFlashStorage.read(addressTemp) != 255){
+    floodfill[currentfloor][RightX][RightY] = dueFlashStorage.read(addressTemp);
+  }
+  if(dueFlashStorage.read(addressTemp+2000) != 255){
+    heatmap[currentfloor][RightX][RightY] = dueFlashStorage.read(addressTemp+2000);
+  }
+  addressTemp = 3+(900*currentfloor)+(30*LeftX)+(LeftY);
+  if(dueFlashStorage.read(addressTemp) != 255){
+    floodfill[currentfloor][LeftX][LeftY] = dueFlashStorage.read(addressTemp);
+  }
+  if(dueFlashStorage.read(addressTemp+2000) != 255){
+    heatmap[currentfloor][LeftX][LeftY] = dueFlashStorage.read(addressTemp+2000);
+  }
+  addressTemp = 3+(900*currentfloor)+(30*BackwardsX)+(BackwardsY);
+  if(dueFlashStorage.read(addressTemp) != 255){
+    floodfill[currentfloor][BackwardsX][BackwardsY] = dueFlashStorage.read(addressTemp);
+  }
+  if(dueFlashStorage.read(addressTemp+2000) != 255){
+    heatmap[currentfloor][BackwardsX][BackwardsY] = dueFlashStorage.read(addressTemp+2000);
   }
 }
 

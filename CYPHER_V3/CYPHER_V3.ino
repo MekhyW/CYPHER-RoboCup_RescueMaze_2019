@@ -1,21 +1,22 @@
 // CYPHER Robot V3
 // Escola de Robótica ABC Marcelo Salles
-// VERSION: 1.0
+// VERSION: 2.0
 #include <Wire.h>
 #include "IMU.h"
 #include "Temperature.h"
-#include "Reflection.h"
 #include "ToF.h"
 #include "PID.h"
 #include "Encoders.h"
+#include "Reflection.h"
 #include "Cameras.h"
 #include "Display.h"
 #include "Motors.h"
 #include "Map_ADVANCED.h"
+#include "Realsense.h"
 
 void setup() {
-	Serial.begin(9600);
-	Wire.begin();
+  Serial.begin(9600);
+  Wire.begin();
   Wire.setClock(100000);
   DisplayInitialize();
   ToFInitialize();
@@ -32,19 +33,23 @@ void setup() {
 void loop() {
   ResetEncoders();
   ResetPID();
+  WhiteAvgLocal = 0;
+  WhiteAvgLocalDenominator = 0;
+  TileDistLocal = TileDist/cos(abs(90-Inclination)*0.0174);
   while(EncPulseEB<TileDistLocal || EncPulseDB<TileDistLocal || EncPulseEA<TileDistLocal || EncPulseDA<TileDistLocal){
     UpdateEncoders();
     ReadIMU();
+    RelativeXY();
   	CheckBackup();
     ReadToF();
-    if(ToFFrontCT<150 || (ToFFrontA<=150 && ToFFrontB<=150)){
+    if(ToFFrontCT<=150 || (ToFFrontA<=150 && ToFFrontB<=150)){
       break;
     }
-    while(ToFLeftA<120 && ToFFrontB>150 && ToFRightA>120){
+    while(ToFLeftA<120 && ToFLeftB>120 && ToFFrontB>150 && ToFRightA>120){
     	WobbleLeft();
     	ReadToF();
     }
-    while(ToFRightA<120 && ToFFrontA>150 && ToFLeftA>120){
+    while(ToFRightA<120 && ToFRightB>120 && ToFFrontA>150 && ToFLeftA>120){
     	WobbleRight();
     	ReadToF();
     }
@@ -62,11 +67,7 @@ void loop() {
     } else if(digitalRead(ImpactSensorRight)==LOW && ToFFrontCT>200 && floodfill[currentfloor][PositionX][PositionY]!=1){
       AvoidRight();
     }
-    if(floodfill[currentfloor][PositionX][PositionY]==1){
-      ReadReflectionPure();
-    } else {
-      ReadReflection();
-    }
+    ReadReflection();
     if(ReflectLeft>TrapLimit && ReflectRight>TrapLimit){
       BlackZone();
       break;
@@ -80,115 +81,130 @@ void loop() {
 
 
 
+void AlignFrontBack(){
+  ResetEncoders();
+  ReadToF();
+  TargetEncAvg = map(ToFFrontCT - 150, -150, 150, -(TileDist/2), TileDist/2);
+  if(ToFFrontCT <= 300 && TargetEncAvg > 0){
+    while(EncPulseAvg < TargetEncAvg){
+      MoveForward(150);
+      UpdateEncoders();
+    } 
+  } else if(ToFFrontCT <= 300 && TargetEncAvg < 0){
+    while(EncPulseAvg < abs(TargetEncAvg)){
+      MoveBackwards(150);
+      UpdateEncoders();
+    } 
+  }
+  TargetEncAvg = map(ToFFrontCT - 450, -150, 150, -(TileDist/2), TileDist/2);
+  if(ToFFrontCT <= 600 && ToFFrontCT>=300 && ToFFrontA <= 600 && ToFFrontA>=300 && ToFFrontB <= 600 && ToFFrontB>=300 && TargetEncAvg > 0){
+    while(EncPulseAvg < TargetEncAvg){
+      MoveForward(150);
+      UpdateEncoders();
+    } 
+  } else if(ToFFrontCT <= 600 && ToFFrontCT>=300 && ToFFrontA <= 600 && ToFFrontA>=300 && ToFFrontB <= 600 && ToFFrontB>=300 && TargetEncAvg < 0){
+    while(EncPulseAvg < abs(TargetEncAvg)){
+      MoveBackwards(150);
+      UpdateEncoders();
+    } 
+  }
+  ResetEncoders();
+  ReadToF();
+  TargetEncAvg = map(150 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2);
+  if(ToFBackCT <= 300 && TargetEncAvg > 0){
+    while(EncPulseAvg < TargetEncAvg){
+      MoveForward(150);
+      UpdateEncoders();
+    } 
+  } else if(ToFBackCT <= 300 && TargetEncAvg < 0){
+    while(EncPulseAvg < abs(TargetEncAvg)){
+      MoveBackwards(150);
+      UpdateEncoders();
+    } 
+  }
+  TargetEncAvg = map(450 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2);
+  if(ToFBackCT <= 600 && ToFBackCT>=300 && ToFBackA <= 600 && ToFBackA>=300 && ToFBackB <= 600 && ToFBackB>=300 && TargetEncAvg > 0){
+    while(EncPulseAvg < TargetEncAvg){
+      MoveForward(150);
+      UpdateEncoders();
+    } 
+  } else if(ToFBackCT <= 600 && ToFBackCT>=300 && ToFBackA <= 600 && ToFBackA>=300 && ToFBackB <= 600 && ToFBackB>=300 && TargetEncAvg < 0){
+    while(EncPulseAvg < abs(TargetEncAvg)){
+      MoveBackwards(150);
+      UpdateEncoders();
+    } 
+  }
+  MotorsStop();
+}
+
+void AlignAngle(){
+  ResetEncoders();
+  ReadToF();
+  if(ToFRightA<300 && ToFRightCT<300 && ToFRightB<300){
+  	  TargetEncAvg = map(atan2((ToFRightA-ToFRightB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  if(TargetEncAvg > 0){
+  	  	while(EncPulseAvg < TargetEncAvg){
+  	  		RotateRight(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  } else if(TargetEncAvg < 0){
+  	  	while(EncPulseAvg < abs(TargetEncAvg)){
+  	  		RotateLeft(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  }
+  }
+  if(ToFLeftA<300 && ToFLeftCT<300 && ToFLeftB<300){
+  	  TargetEncAvg = map(atan2((ToFLeftA-ToFLeftB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  if(TargetEncAvg > 0){
+  	  	while(EncPulseAvg < TargetEncAvg){
+  	  		RotateLeft(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  } else if(TargetEncAvg < 0){
+  	  	while(EncPulseAvg < abs(TargetEncAvg)){
+  	  		RotateRight(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  }
+  }
+  if(ToFFrontA<300 && ToFFrontCT<300 && ToFFrontB<300){
+  	  TargetEncAvg = map(atan2((ToFFrontA-ToFFrontB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  if(TargetEncAvg > 0){
+  	  	while(EncPulseAvg < TargetEncAvg){
+  	  		RotateRight(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  } else if(TargetEncAvg < 0){
+  	  	while(EncPulseAvg < abs(TargetEncAvg)){
+  	  		RotateLeft(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  }
+  }
+  if(ToFBackA<300 && ToFBackCT<300 && ToFBackB<300){
+  	  TargetEncAvg = map(atan2((ToFBackA-ToFBackB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  if(TargetEncAvg > 0){
+  	  	while(EncPulseAvg < TargetEncAvg){
+  	  		RotateRight(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  } else if(TargetEncAvg < 0){
+  	  	while(EncPulseAvg < abs(TargetEncAvg)){
+  	  		RotateLeft(150);
+  	  		UpdateEncoders();
+  	  	}
+  	  }
+  }
+  MotorsStop();
+}
+
 void Align(){
-  Serial.println("align");
   MotorsStop();
-  ResetPID();
-  while((ToFFrontCT<150&&ToFFrontA<300&&ToFFrontB<300&&ToFFrontA>(ToFFrontB*1.2)) || (ToFBackCT<300&&ToFBackCT>150&&ToFBackA<300&&ToFBackB<300&&ToFBackA>(ToFBackB*1.2))){
-    ReadToF();
-    Introduce(2, -1, 150);
-  }
-  while((ToFFrontCT<150&&ToFFrontA<300&&ToFFrontB<300&&ToFFrontB>(ToFFrontA*1.2)) || (ToFBackCT<300&&ToFBackCT>150&&ToFBackA<300&&ToFBackB<300&&ToFBackB>(ToFBackA*1.2))){
-    ReadToF();
-    Introduce(1, -1, 150);
-  }
-  while((ToFFrontCT<300&&ToFFrontCT>150&&ToFFrontA<300&&ToFFrontB<300&&(ToFFrontA*1.2)<ToFFrontB) || (ToFBackCT<150&&ToFBackA<300&&ToFBackB<300&&(ToFBackA*1.2)<ToFBackB)){
-    ReadToF();
-    Introduce(2, 1, 150);
-  }
-  while((ToFFrontCT<300&&ToFFrontCT>150&&ToFFrontA<300&&ToFFrontB<300&&(ToFFrontB*1.2)<ToFFrontA) || (ToFBackCT<150&&ToFBackA<300&&ToFBackB<300&&(ToFBackB*1.2)<ToFBackA)){
-    ReadToF();
-    Introduce(1, 1, 150);
-  }
-  while((ToFRightCT<300&&ToFRightA<300&&ToFRightB<300&&ToFRightA>(ToFRightB*1.3)) || (ToFLeftCT<300&&ToFLeftA<300&&ToFLeftB<300&&ToFLeftB>(ToFLeftA*1.3))){
-      ReadToF();
-      Introduce(1, 1, 150);
-  }
-  while((ToFRightCT<300&&ToFRightA<300&&ToFRightB<300&&(ToFRightA*1.3)<ToFRightB) || (ToFLeftCT<300&&ToFLeftA<300&&ToFLeftB<300&&(ToFLeftB*1.3)<ToFLeftA)){
-      ReadToF();
-      Introduce(2, 1, 150);
-  }
-  if(ToFFrontCT<300&&ToFFrontA<300&&ToFFrontB<300&&ToFBackCT<300&&ToFBackA<300&&ToFBackB<300){
-    while((ToFFrontCT/1.2)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFBackCT/1.2)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveBackwardsPID(150);
-    }
-  } else if(ToFFrontCT>300&&ToFFrontCT<600&&ToFFrontA>300&&ToFFrontA<600&&ToFFrontB>300&&ToFFrontB<600&&ToFBackCT>300&&ToFBackCT<600&&ToFBackA>300&&ToFBackA<600&&ToFBackB>300&&ToFBackB<600){
-    while((ToFFrontCT/1.1)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFBackCT/1.1)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveBackwardsPID(150);
-    }
-  } else {
-    while((ToFFrontCT<300&&ToFFrontCT>(150*1.2)&&ToFFrontA<300&&ToFFrontB<300) || (ToFFrontCT<600&&ToFFrontCT>(450*1.2)&&ToFFrontA<600&&ToFFrontA>450&&ToFFrontB<600&&ToFFrontB>450&&ToFBackCT>300) || (ToFBackCT<(150/1.4)&&ToFBackA<300&&ToFBackB<300) || (ToFBackCT>300&&ToFBackCT<(450/1.4)&&ToFBackA>300&&ToFBackA<450&&ToFBackB>300&&ToFBackB<450)){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFFrontCT<(150/1.4)&&ToFFrontA<300&&ToFFrontB<300) || (ToFFrontCT<(450/1.4)&&ToFFrontCT>300&&ToFFrontA<450&&ToFFrontA>300&&ToFFrontB<450&&ToFFrontB>300) || (ToFBackCT<300&&ToFBackCT>(150*1.2)&&ToFBackA<300&&ToFBackB<300) || (ToFBackCT<600&&ToFBackCT>(450*1.2)&&ToFBackA<600&&ToFBackA>450&&ToFBackB<600&&ToFBackB>450&&ToFFrontCT>300)){
-      ReadToF();
-      MoveBackwardsPID(150);
-    } 
-  }
-  while((ToFFrontCT<150&&ToFFrontA<300&&ToFFrontB<300&&ToFFrontA>(ToFFrontB*1.2)) || (ToFBackCT<300&&ToFBackCT>150&&ToFBackA<300&&ToFBackB<300&&ToFBackA>(ToFBackB*1.2))){
-    ReadToF();
-    Introduce(2, -1, 150);
-  }
-  while((ToFFrontCT<150&&ToFFrontA<300&&ToFFrontB<300&&ToFFrontB>(ToFFrontA*1.2)) || (ToFBackCT<300&&ToFBackCT>150&&ToFBackA<300&&ToFBackB<300&&ToFBackB>(ToFBackA*1.2))){
-    ReadToF();
-    Introduce(1, -1, 150);
-  }
-  while((ToFFrontCT<300&&ToFFrontCT>150&&ToFFrontA<300&&ToFFrontB<300&&(ToFFrontA*1.2)<ToFFrontB) || (ToFBackCT<150&&ToFBackA<300&&ToFBackB<300&&(ToFBackA*1.2)<ToFBackB)){
-    ReadToF();
-    Introduce(2, 1, 150);
-  }
-  while((ToFFrontCT<300&&ToFFrontCT>150&&ToFFrontA<300&&ToFFrontB<300&&(ToFFrontB*1.2)<ToFFrontA) || (ToFBackCT<150&&ToFBackA<300&&ToFBackB<300&&(ToFBackB*1.2)<ToFBackA)){
-    ReadToF();
-    Introduce(1, 1, 150);
-  }
-  while((ToFRightCT<300&&ToFRightA<300&&ToFRightB<300&&ToFRightA>(ToFRightB*1.3)) || (ToFLeftCT<300&&ToFLeftA<300&&ToFLeftB<300&&ToFLeftB>(ToFLeftA*1.3))){
-      ReadToF();
-      Introduce(1, 1, 150);
-  }
-  while((ToFRightCT<300&&ToFRightA<300&&ToFRightB<300&&(ToFRightA*1.3)<ToFRightB) || (ToFLeftCT<300&&ToFLeftA<300&&ToFLeftB<300&&(ToFLeftB*1.3)<ToFLeftA)){
-      ReadToF();
-      Introduce(2, 1, 150);
-  }
-  if(ToFFrontCT<300&&ToFFrontA<300&&ToFFrontB<300&&ToFBackCT<300&&ToFBackA<300&&ToFBackB<300){
-    while((ToFFrontCT/1.2)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFBackCT/1.2)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveBackwardsPID(150);
-    }
-  } else if(ToFFrontCT>300&&ToFFrontCT<600&&ToFFrontA>300&&ToFFrontA<600&&ToFFrontB>300&&ToFFrontB<600&&ToFBackCT>300&&ToFBackCT<600&&ToFBackA>300&&ToFBackA<600&&ToFBackB>300&&ToFBackB<600){
-    while((ToFFrontCT/1.1)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFBackCT/1.1)>(ToFFrontCT+ToFBackCT)/2){
-      ReadToF();
-      MoveBackwardsPID(150);
-    }
-  } else {
-    while((ToFFrontCT<300&&ToFFrontCT>(150*1.2)&&ToFFrontA<300&&ToFFrontB<300) || (ToFFrontCT<600&&ToFFrontCT>(450*1.2)&&ToFFrontA<600&&ToFFrontA>450&&ToFFrontB<600&&ToFFrontB>450&&ToFBackCT>300) || (ToFBackCT<(150/1.4)&&ToFBackA<300&&ToFBackB<300) || (ToFBackCT>300&&ToFBackCT<(450/1.4)&&ToFBackA>300&&ToFBackA<450&&ToFBackB>300&&ToFBackB<450)){
-      ReadToF();
-      MoveForwardPID(150);
-    }
-    while((ToFFrontCT<(150/1.4)&&ToFFrontA<300&&ToFFrontB<300) || (ToFFrontCT<(450/1.4)&&ToFFrontCT>300&&ToFFrontA<450&&ToFFrontA>300&&ToFFrontB<450&&ToFFrontB>300) || (ToFBackCT<300&&ToFBackCT>(150*1.2)&&ToFBackA<300&&ToFBackB<300) || (ToFBackCT<600&&ToFBackCT>(450*1.2)&&ToFBackA<600&&ToFBackA>450&&ToFBackB<600&&ToFBackB>450&&ToFFrontCT>300)){
-      ReadToF();
-      MoveBackwardsPID(150);
-    } 
-  }
-  MotorsStop();
+  AlignAngle();
+  AlignFrontBack();
+  AlignAngle();
+  AlignFrontBack();
 }
 
 
@@ -250,7 +266,12 @@ void Retreat(){
   DB.write(abs(EncPulseDB));
   EA.write(abs(EncPulseEA));
   DA.write(abs(EncPulseDA));
-  while(EncPulseEB>1200 || EncPulseDA>1200 || EncPulseDB>1200 || EncPulseEA>1200){
+  EncPulseEB=EB.read();
+  EncPulseDB=DB.read();
+  EncPulseEA=EA.read();
+  EncPulseDA=DA.read();
+  EncPulseAvg=(EncPulseEB+EncPulseDB+EncPulseEA+EncPulseDA)/4;
+  while(EncPulseAvg > 0){
     ReadToF();
     MoveBackwards(200);
     EncPulseEB=EB.read();
@@ -273,7 +294,15 @@ void TurnLeft(){
     CheckVictim();
     CheckBackup();
   }
-  ReadIMU();
+  if(Quadrant==1){
+    Quadrant=4;
+  } else if(Quadrant==2){
+    Quadrant=3;
+  } else if(Quadrant==3){
+    Quadrant=1;
+  } else if(Quadrant==4){
+    Quadrant=2;
+  }
   RelativeXY();
   Align();
   Rotating=false;
@@ -291,7 +320,15 @@ void TurnRight(){
     CheckVictim();
     CheckBackup();
   }
-  ReadIMU();
+  if(Quadrant==1){
+    Quadrant=3;
+  } else if(Quadrant==2){
+    Quadrant=4;
+  } else if(Quadrant==3){
+    Quadrant=2;
+  } else if(Quadrant==4){
+    Quadrant=1;
+  }
   RelativeXY();
   Align();
   Rotating=false;
@@ -380,15 +417,21 @@ void Victim(int type, int side){
     heatmap[currentfloor][ForwardX][ForwardY]=1;
   }
   if(side==1 && type!=4 && KitCounter>0){
+    DrawForegroundPic(10);
     DeployKitLeft();
     if(type==2 && KitCounter>0){
       DeployKitLeft();
     }
+    DrawForegroundPic(11);
+    delay(1000);
   } else if(side==2 && type!=4 && KitCounter>0){
+    DrawForegroundPic(12);
     DeployKitRight();
     if(type==2 && KitCounter>0){
       DeployKitRight();
     }
+    DrawForegroundPic(13);
+    delay(1000);
   }
   EraseForegroundPic();
 }
@@ -401,19 +444,11 @@ void BlackZone(){
 
 
 void NextMove(){
-  Serial.println("next move");
-  ReadReflectionPure();
-  if(ReflectLeft>TrapLimit && ReflectRight>TrapLimit){
-  	BlackZone();
-  }
-  ReadIMU();
-  TileDistLocal = TileDist/cos(abs(90-Inclination)*0.0174);
   if(EncPulseAvg>=(TileDist/2)){
     MapDisplacement();
   }
   Align();
-  ReadReflectionPure();
-  if(OnCheckpoint==true && (PositionX!=PositionXBackup||PositionY!=PositionYBackup||currentfloor!=currentfloorBackup)){
+  if(OnCheckpoint==true && floodfill[currentfloor][ForwardX][ForwardY]!=100 && (PositionX!=(int)dueFlashStorage.read(0)||PositionY!=(int)dueFlashStorage.read(1)||currentfloor!=(int)dueFlashStorage.read(2))){
       MotorsStop();
       UpdateBackup();
       DrawForegroundPic(8);

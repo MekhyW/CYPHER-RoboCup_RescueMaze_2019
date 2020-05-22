@@ -18,15 +18,6 @@ void ReadIMU(){
   if(Angle<0){
     Angle+=360;
   }
-  if((Angle>=0 && Angle<=45) || (Angle<=360 && Angle>=315)){
-    Quadrant=3;
-  } else if(Angle>=45 && Angle<=135){
-    Quadrant=2;
-  } else if(Angle>=135 && Angle<=225){
-    Quadrant=4;
-  } else if(Angle>=225 && Angle<=315){
-    Quadrant=1;
-  }
 }
 
 void IMUCalibrate(){
