@@ -84,7 +84,7 @@ void loop() {
 void AlignFrontBack(){
   ResetEncoders();
   ReadToF();
-  TargetEncAvg = map(ToFFrontCT - 150, -150, 150, -(TileDist/2), TileDist/2);
+  TargetEncAvg = map(ToFFrontCT - 150, -150, 150, -(TileDist/2), TileDist/2)/2;
   if(ToFFrontCT <= 300 && TargetEncAvg > 0){
     while(EncPulseAvg < TargetEncAvg){
       MoveForward(150);
@@ -96,7 +96,7 @@ void AlignFrontBack(){
       UpdateEncoders();
     } 
   }
-  TargetEncAvg = map(ToFFrontCT - 450, -150, 150, -(TileDist/2), TileDist/2);
+  TargetEncAvg = map(ToFFrontCT - 450, -150, 150, -(TileDist/2), TileDist/2)/2;
   if(ToFFrontCT <= 600 && ToFFrontCT>=300 && ToFFrontA <= 600 && ToFFrontA>=300 && ToFFrontB <= 600 && ToFFrontB>=300 && TargetEncAvg > 0){
     while(EncPulseAvg < TargetEncAvg){
       MoveForward(150);
@@ -110,7 +110,7 @@ void AlignFrontBack(){
   }
   ResetEncoders();
   ReadToF();
-  TargetEncAvg = map(150 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2);
+  TargetEncAvg = map(150 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2)/2;
   if(ToFBackCT <= 300 && TargetEncAvg > 0){
     while(EncPulseAvg < TargetEncAvg){
       MoveForward(150);
@@ -122,7 +122,7 @@ void AlignFrontBack(){
       UpdateEncoders();
     } 
   }
-  TargetEncAvg = map(450 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2);
+  TargetEncAvg = map(450 - ToFBackCT, -150, 150, -(TileDist/2), TileDist/2)/2;
   if(ToFBackCT <= 600 && ToFBackCT>=300 && ToFBackA <= 600 && ToFBackA>=300 && ToFBackB <= 600 && ToFBackB>=300 && TargetEncAvg > 0){
     while(EncPulseAvg < TargetEncAvg){
       MoveForward(150);
@@ -134,14 +134,13 @@ void AlignFrontBack(){
       UpdateEncoders();
     } 
   }
-  MotorsStop();
 }
 
 void AlignAngle(){
   ResetEncoders();
   ReadToF();
   if(ToFRightA<300 && ToFRightCT<300 && ToFRightB<300){
-  	  TargetEncAvg = map(atan2((ToFRightA-ToFRightB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  TargetEncAvg = map(atan2((ToFRightA-ToFRightB), 160)*57.296, -90, 90, -(TurnDist), TurnDist)/2;
   	  if(TargetEncAvg > 0){
   	  	while(EncPulseAvg < TargetEncAvg){
   	  		RotateRight(150);
@@ -155,7 +154,7 @@ void AlignAngle(){
   	  }
   }
   if(ToFLeftA<300 && ToFLeftCT<300 && ToFLeftB<300){
-  	  TargetEncAvg = map(atan2((ToFLeftA-ToFLeftB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  TargetEncAvg = map(atan2((ToFLeftA-ToFLeftB), 160)*57.296, -90, 90, -(TurnDist), TurnDist)/2;
   	  if(TargetEncAvg > 0){
   	  	while(EncPulseAvg < TargetEncAvg){
   	  		RotateLeft(150);
@@ -169,7 +168,7 @@ void AlignAngle(){
   	  }
   }
   if(ToFFrontA<300 && ToFFrontCT<300 && ToFFrontB<300){
-  	  TargetEncAvg = map(atan2((ToFFrontA-ToFFrontB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  TargetEncAvg = map(atan2((ToFFrontA-ToFFrontB), 160)*57.296, -90, 90, -(TurnDist), TurnDist)/2;
   	  if(TargetEncAvg > 0){
   	  	while(EncPulseAvg < TargetEncAvg){
   	  		RotateRight(150);
@@ -183,7 +182,7 @@ void AlignAngle(){
   	  }
   }
   if(ToFBackA<300 && ToFBackCT<300 && ToFBackB<300){
-  	  TargetEncAvg = map(atan2((ToFBackA-ToFBackB), 160)*57.296, -90, 90, -(TurnDist), TurnDist);
+  	  TargetEncAvg = map(atan2((ToFBackA-ToFBackB), 160)*57.296, -90, 90, -(TurnDist), TurnDist)/2;
   	  if(TargetEncAvg > 0){
   	  	while(EncPulseAvg < TargetEncAvg){
   	  		RotateRight(150);
@@ -196,13 +195,9 @@ void AlignAngle(){
   	  	}
   	  }
   }
-  MotorsStop();
 }
 
 void Align(){
-  MotorsStop();
-  AlignAngle();
-  AlignFrontBack();
   AlignAngle();
   AlignFrontBack();
 }
@@ -237,26 +232,26 @@ void AvoidRight(){
 void WobbleRight(){
 	LockEncoders();
 	RotateRight(200);
-    delay(50);
+    delay(40);
     MoveBackwards(200);
-    delay(50);
+    delay(40);
     RotateLeft(200);
-    delay(70);
+    delay(56);
     MoveForward(200);
-    delay(50);
+    delay(40);
     UnlockEncoders();
 }
 
 void WobbleLeft(){
 	LockEncoders();
 	RotateLeft(200);
-    delay(50);
+    delay(40);
     MoveBackwards(200);
-    delay(50);
+    delay(40);
     RotateRight(200);
-    delay(70);
+    delay(56);
     MoveForward(200);
-    delay(50);
+    delay(40);
     UnlockEncoders();
 }
 
@@ -477,6 +472,7 @@ void NextMove(){
     delay(10000);
     EraseForegroundPic();
   }
+  MotorsStop();
   MarkAccess();
   ProcessAccessKey();
   if(IsRightAvailable==true && floodfill[currentfloor][RightX][RightY]==0){

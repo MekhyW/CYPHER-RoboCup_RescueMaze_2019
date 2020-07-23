@@ -8,7 +8,8 @@ pipe.start(cfg)
 
 while True:
     try:
-        SERIAL = serial.Serial('COM14', 9600)
+        DUE = serial.Serial('COM14', 9600)
+        LEONARDO = serial.Serial('COM999', 9600)
         break
     except:
         pass
@@ -46,7 +47,8 @@ while True:
         ROBOT_POSITION_X = (((+1) * data.translation.x) * 100) - (9.5 * math.cos(math.radians(ROBOT_COMPASS))) + 465 - 15
         ROBOT_POSITION_Y = (((-1) * data.translation.z) * 100) - (9.5 * math.sin(math.radians(ROBOT_COMPASS))) + 465 - 15
         if data.tracker_confidence >= 2:
-            SERIAL.write("{}-{}\n".format(round(ROBOT_POSITION_X/30), round(ROBOT_POSITION_Y/30)).encode())
+            DUE.write("{}-{}\n".format(round(ROBOT_POSITION_X/30), round(ROBOT_POSITION_Y/30)).encode())
             print("{}-{}\n".format(round(ROBOT_POSITION_X/30), round(ROBOT_POSITION_Y/30)).encode())
-        #while SERIAL.in_waiting:
-        #    print(SERIAL.readline())
+        #while DUE.in_waiting:
+        #    print(DUE.readline())
+        LEONARDO.write(DUE.readline())

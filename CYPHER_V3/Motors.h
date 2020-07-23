@@ -35,7 +35,6 @@ void MotorsStop(){
   digitalWrite(motorLLdirB, HIGH);
   digitalWrite(motorLRdirA, HIGH);
   digitalWrite(motorLRdirB, HIGH);
-  //delay(25);
 }
 
 void MotorsInitialize(){
@@ -151,10 +150,10 @@ void MoveBackwardsPID(int speed){
     analogWrite(motorUR, constrain(speed-PID_value, 0, 250));
     analogWrite(motorLR, constrain(speed-PID_value, 0, 250));
   } else if(ConservativePID==true){
-    analogWrite(motorUL, constrain(speed+PID_value, 130, 250));
-    analogWrite(motorLL, constrain(speed+PID_value, 130, 250));
-    analogWrite(motorUR, constrain(speed-PID_value, 130, 250));
-    analogWrite(motorLR, constrain(speed-PID_value, 130, 250));
+    analogWrite(motorUL, constrain(speed+PID_value, 120, 250));
+    analogWrite(motorLL, constrain(speed+PID_value, 120, 250));
+    analogWrite(motorUR, constrain(speed-PID_value, 120, 250));
+    analogWrite(motorLR, constrain(speed-PID_value, 120, 250));
   }
 }
 

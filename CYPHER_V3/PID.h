@@ -23,53 +23,53 @@ void CalculatePID(){
   error = 0;
   if(ToFLeftA<=300 && ToFRightA<=300){
     error += ToFLeftA-ToFRightA;
-    ConservativePID=true;
+    ConservativePID=false;
   } 
-  if(ToFLeftA<300 && ToFLeftB<300 && ToFLeftCT<300){
+  else if(ToFLeftA<300 && ToFLeftB<300 && ToFLeftCT<300){
     error += ToFLeftA-ToFLeftB+(ToFLeftA-150);
-    ConservativePID=true;
+    ConservativePID=false;
   } 
-  if(ToFRightA<300 && ToFRightB<300 && ToFRightCT<300){
+  else if(ToFRightA<300 && ToFRightB<300 && ToFRightCT<300){
     error += ToFRightB-ToFRightA+(150-ToFRightA);
-    ConservativePID=true;
+    ConservativePID=false;
   } 
-  if(ToFBackA<300 && ToFBackB<300 && ToFBackCT<300){
+  else if(ToFBackA<300 && ToFBackB<300 && ToFBackCT<300){
     error += ToFBackB-ToFBackA;
-    ConservativePID=true;
+    ConservativePID=false;
   } 
-  if(ToFFrontA<300 && ToFFrontB<300 && ToFFrontCT<300){
+  else if(ToFFrontA<300 && ToFFrontB<300 && ToFFrontCT<300){
     error += ToFFrontB-ToFFrontA;
-    ConservativePID=true;
-  } 
-  if(ToFLeftA<300 && ToFLeftCT<300){
-    error += ToFLeftA-ToFLeftCT;
-    ConservativePID=true;
-  } 
-  if(ToFRightA<300 && ToFRightCT<300){
-    error += ToFRightCT-ToFRightA;
-    ConservativePID=true;
-  } 
-  if(abs(((ToFLeftA+ToFLeftB)/2)-ToFLeftCT) < 20){
+    ConservativePID=false;
+  }
+  else if(abs(((ToFLeftA+ToFLeftB)/2)-ToFLeftCT) < 20){
     error += ToFLeftA-ToFLeftB;
     ConservativePID=true;
   } 
-  if(abs(((ToFRightA+ToFRightB)/2)-ToFRightCT) < 20){
+  else if(abs(((ToFRightA+ToFRightB)/2)-ToFRightCT) < 20){
     error += ToFRightB-ToFRightA;
     ConservativePID=true;
   } 
-  if(abs(((ToFBackA+ToFBackB)/2)-ToFBackCT) < 20){
+  else if(abs(((ToFBackA+ToFBackB)/2)-ToFBackCT) < 20){
     error += ToFBackB-ToFBackA;
     ConservativePID=true;
   } 
-  if(abs(((ToFFrontA+ToFFrontB)/2)-ToFFrontCT) < 20){
+  else if(abs(((ToFFrontA+ToFFrontB)/2)-ToFFrontCT) < 20){
     error += ToFFrontB-ToFFrontA;
     ConservativePID=true;
+  }  
+  else if(ToFLeftA<300 && ToFLeftCT<300){
+    error += ToFLeftA-ToFLeftCT;
+    ConservativePID=true;
   } 
-  if(ToFRightCT<300 && ToFRightB<300){
+  else if(ToFRightA<300 && ToFRightCT<300){
+    error += ToFRightCT-ToFRightA;
+    ConservativePID=true;
+  }
+  else if(ToFRightCT<300 && ToFRightB<300){
     error += ToFRightB-ToFRightCT;
     ConservativePID=true;
   } 
-  if(ToFLeftCT<300 && ToFLeftB<300){
+  else if(ToFLeftCT<300 && ToFLeftB<300){
     error += ToFLeftCT-ToFLeftB;
     ConservativePID=true;
   }

@@ -1,6 +1,6 @@
 #include <Encoder.h>
-#define TileDist 4500
-#define TurnDist 2400
+#define TileDist 4000
+#define TurnDist 1850
 Encoder EB(29, 27);
 Encoder DB(31, 33);
 Encoder EA(32, 30);
