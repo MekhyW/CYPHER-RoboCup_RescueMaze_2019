@@ -1,6 +1,6 @@
 // CYPHER Robot V3
 // Escola de Robótica ABC Marcelo Salles
-// VERSION: 2.0
+// VERSION: 2.2
 #include <Wire.h>
 #include "IMU.h"
 #include "Temperature.h"

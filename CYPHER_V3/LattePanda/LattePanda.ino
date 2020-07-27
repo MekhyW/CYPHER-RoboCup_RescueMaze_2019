@@ -10,31 +10,8 @@
 #define LightLL_R 0
 #define LightLL_G 0
 #define LightLL_B 0
-int Command=0;
+int Command=99;
 int LastCommand=0;
-int Brightness=150;
-
-void Flash(int color, int side){
-  if(color==4){
-    
-  } else if(side==1){
-    if(color==1){
-      
-    } else if(color==2){
-      
-    } else if(color==3){
-      
-    }
-  } else if(side==2){
-    if(color==1){
-      
-    } else if(color==2){
-      
-    } else if(color==3){
-      
-    }
-  }
-}
 
 void setup() {
   Serial.begin(9600);
@@ -50,34 +27,70 @@ void loop() {
     Serial.println(Serial.read());
   }
   if(Command != LastCommand){
+    for(int i=2; i<=13; i++){
+      analogWrite(i, 0);
+    }
     switch(Command){
       case 0:
         for(int i=2; i<=13; i++){
-          analogWrite(i, Brightness);
+          analogWrite(i, 150);
         }
         break;
       case 1:
-        Flash(1, 1);
+        for(int x=0; x<25; x++){
+          analogWrite(LightUR_R, 150);
+          analogWrite(LightUL_R, 150);
+          analogWrite(LightLR_R, 150);
+          analogWrite(LightLL_R, 150);
+          delay(100);
+          analogWrite(LightUR_R, 0);
+          analogWrite(LightUL_R, 0);
+          analogWrite(LightLR_R, 0);
+          analogWrite(LightLL_R, 0);
+          delay(100); 
+        }
         break;
       case 2:
-        Flash(2, 1);
+        for(int x=0; x<25; x++){
+          analogWrite(LightUR_G, 150);
+          analogWrite(LightUL_G, 150);
+          analogWrite(LightLR_G, 150);
+          analogWrite(LightLL_G, 150);
+          delay(100);
+          analogWrite(LightUR_G, 0);
+          analogWrite(LightUL_G, 0);
+          analogWrite(LightLR_G, 0);
+          analogWrite(LightLL_G, 0);
+          delay(100); 
+        }
         break;
       case 3:
-        Flash(3, 1);
+        for(int x=0; x<25; x++){
+          analogWrite(LightUR_B, 150);
+          analogWrite(LightUL_B, 150);
+          analogWrite(LightLR_B, 150);
+          analogWrite(LightLL_B, 150);
+          delay(100);
+          analogWrite(LightUR_B, 0);
+          analogWrite(LightUL_B, 0);
+          analogWrite(LightLR_B, 0);
+          analogWrite(LightLL_B, 0);
+          delay(100); 
+        }
         break;
       case 4:
-        Flash(1, 2);
+        for(int x=0; x<25; x++){
+          for(int i=2; i<=13; i++){
+            analogWrite(i, 150);
+          }
+          delay(200);
+          for(int i=2; i<=13; i++){
+            analogWrite(i, 0);
+          }
+          delay(200);
+        }
         break;
-      case 5:
-        Flash(2, 2);
-        break;
-      case 6:
-        Flash(3, 2);
-        break;
-      case 7:
-        Flash(4, 1); //ExitBonus
-        break;
-    }  
+    }
   }
   LastCommand = Command;
 }
